@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Ignitron Accommodation{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <img src="{{ url_for('static', filename='image (1).png') }}" alt="Ignitron Logo" class="ignitron-logo mb-3" style="height: 60px; filter: brightness(0) invert(1) drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));">
+                    <h1 class="ignitron-text mb-3" style="font-size: 2.5rem;">IGNITRON 2K25</h1>
+                    <p class="text-white mb-2" style="font-size: 1.1rem; letter-spacing: 2px;">ACCOMMODATION MANAGEMENT</p>
+                    <p class="text-muted">Login to your account</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('login') }}">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required autofocus>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </button>
+                    </div>
+                </form>
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <p class="mb-0">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+                </div>
+
+               
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

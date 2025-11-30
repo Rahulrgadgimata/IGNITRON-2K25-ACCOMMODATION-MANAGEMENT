@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Add Room - Ignitron Accommodation{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Add New Room</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('admin.add_room') }}">
+                    <div class="mb-3">
+                        <label for="room_no" class="form-label">Room Number <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="room_no" name="room_no" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="capacity" class="form-label">Capacity (Total Beds) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="capacity" name="capacity" min="1" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="available_beds" class="form-label">Available Beds <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="available_beds" name="available_beds" min="0" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('admin.rooms') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Add Room
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

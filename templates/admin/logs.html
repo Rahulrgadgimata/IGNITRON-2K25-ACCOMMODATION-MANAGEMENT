@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Logs - Ignitron Accommodation{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title"><i class="bi bi-journal-text"></i> Activity Logs</h1>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.export_logs') }}" class="btn btn-success">
+                <i class="bi bi-download"></i> Export as CSV
+            </a>
+            {% if logs %}
+            <form method="POST" action="{{ url_for('admin.clear_logs') }}" class="d-inline" onsubmit="return confirm('⚠️ WARNING: This will permanently delete ALL logs. This action cannot be undone!\n\nAre you absolutely sure you want to clear all logs?');">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Clear All Logs
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-funnel"></i> Filter Options</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('admin.logs') }}" class="row g-3">
+                <div class="col-md-3">
+                    <label for="action_filter" class="form-label">Action Type</label>
+                    <select class="form-select" id="action_filter" name="action">
+                        <option value="">All Actions</option>
+                        <option value="login" {% if request.args.get('action') == 'login' %}selected{% endif %}>Login</option>
+                        <option value="logout" {% if request.args.get('action') == 'logout' %}selected{% endif %}>Logout</option>
+                        <option value="registration" {% if request.args.get('action') == 'registration' %}selected{% endif %}>Registration</option>
+                        <option value="booking_requested" {% if request.args.get('action') == 'booking_requested' %}selected{% endif %}>Booking Requested</option>
+                        <option value="booking_approved" {% if request.args.get('action') == 'booking_approved' %}selected{% endif %}>Booking Approved</option>
+                        <option value="booking_rejected" {% if request.args.get('action') == 'booking_rejected' %}selected{% endif %}>Booking Rejected</option>
+                        <option value="check_in" {% if request.args.get('action') == 'check_in' %}selected{% endif %}>Check In</option>
+                        <option value="check_out" {% if request.args.get('action') == 'check_out' %}selected{% endif %}>Check Out</option>
+                        <option value="room_added" {% if request.args.get('action') == 'room_added' %}selected{% endif %}>Room Added</option>
+                        <option value="room_edited" {% if request.args.get('action') == 'room_edited' %}selected{% endif %}>Room Edited</option>
+                        <option value="room_deleted" {% if request.args.get('action') == 'room_deleted' %}selected{% endif %}>Room Deleted</option>
+                        <option value="profile_updated" {% if request.args.get('action') == 'profile_updated' %}selected{% endif %}>Profile Updated</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="user_filter" class="form-label">User Email</label>
+                    <input type="text" class="form-control" id="user_filter" name="user_email" 
+                           placeholder="Search by email..." value="{{ request.args.get('user_email', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="date_from" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from" 
+                           value="{{ request.args.get('date_from', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="date_to" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to" 
+                           value="{{ request.args.get('date_to', '') }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Filter
+                    </button>
+                </div>
+            </form>
+            {% if request.args.get('action') or request.args.get('user_email') or request.args.get('date_from') or request.args.get('date_to') %}
+            <div class="mt-3">
+                <a href="{{ url_for('admin.logs') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-x-circle"></i> Clear Filters
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-2">Total Logs</h6>
+                            <h2 class="mb-0">{{ logs|length }}</h2>
+                        </div>
+                        <i class="bi bi-journal-text fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-2">Today's Logs</h6>
+                            <h2 class="mb-0">{{ today_logs_count }}</h2>
+                        </div>
+                        <i class="bi bi-calendar-day fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-2">Unique Users</h6>
+                            <h2 class="mb-0">{{ unique_users }}</h2>
+                        </div>
+                        <i class="bi bi-people fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-2">Action Types</h6>
+                            <h2 class="mb-0">{{ unique_actions }}</h2>
+                        </div>
+                        <i class="bi bi-tags fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if logs %}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-list-ul"></i> Log Entries ({{ logs|length }} results)</h5>
+            <div>
+                <span class="badge bg-info">Sorted: Newest First</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td><strong>#{{ log.id }}</strong></td>
+                            <td>
+                                <div>
+                                    <strong>{{ log.timestamp.strftime('%Y-%m-%d') }}</strong><br>
+                                    <small class="text-muted">{{ log.timestamp.strftime('%H:%M:%S') }} IST</small>
+                                </div>
+                            </td>
+                            <td>
+                                <strong>{{ log.user.name }}</strong>
+                                {% if log.user.role == 'admin' %}
+                                <span class="badge bg-danger ms-1">Admin</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ log.user.email }}</td>
+                            <td>
+                                {% set action_color = 'info' %}
+                                {% if 'login' in log.action or 'check_in' in log.action %}
+                                    {% set action_color = 'success' %}
+                                {% elif 'logout' in log.action or 'check_out' in log.action %}
+                                    {% set action_color = 'warning' %}
+                                {% elif 'rejected' in log.action or 'deleted' in log.action %}
+                                    {% set action_color = 'danger' %}
+                                {% elif 'approved' in log.action or 'added' in log.action %}
+                                    {% set action_color = 'success' %}
+                                {% endif %}
+                                <span class="badge bg-{{ action_color }}">
+                                    <i class="bi bi-{{ 'box-arrow-in-right' if 'login' in log.action else 'box-arrow-right' if 'logout' in log.action else 'check-circle' if 'approved' in log.action or 'check_in' in log.action else 'x-circle' if 'rejected' in log.action or 'deleted' in log.action else 'calendar-plus' if 'booking' in log.action else 'person-plus' if 'registration' in log.action else 'pencil' if 'edit' in log.action or 'updated' in log.action else 'door-open' if 'room' in log.action else 'journal-text' }}"></i>
+                                    {{ log.action.replace('_', ' ').title() }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-light">{{ log.details or '<em class="text-muted">No details</em>'|safe }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No logs found matching your filters.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
